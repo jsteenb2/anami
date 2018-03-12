@@ -2,7 +2,6 @@ package anami_test
 
 import (
 	"flag"
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -23,20 +22,15 @@ func Test_NewHourGlass(t *testing.T) {
 		{"31 rows", 31, "31_rows.golden"},
 		{"6 rows", 6, "6_rows.golden"},
 		{"20 rows", 20, "20_rows.golden"},
+		{"50 rows", 50, "50_rows.golden"},
+		{"300 rows", 300, "300_rows.golden"},
 	}
 
 	for _, tt := range tests {
 		fn := func(t *testing.T) {
 			actual := anami.NewHourGlass(tt.in)
 
-			golden := filepath.Join("golden", tt.fileName)
-			if *update {
-				if err := ioutil.WriteFile(golden, []byte(actual), 0644); err != nil {
-					t.Fatal(err)
-				}
-			}
-			expected, _ := ioutil.ReadFile(golden)
-
+			expected := goldenHelper(t, filepath.Join("golden", tt.fileName), []byte(actual))
 			if actual != string(expected) {
 				t.Errorf("\ngot:\n%s\nexpected:\n%s", actual, expected)
 			}
