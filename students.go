@@ -8,11 +8,34 @@ import (
 )
 
 const (
-	asc sortOrder = iota + 1
-	desc
+	ASC SortOrder = iota + 1
+	DESC
+
+	QuickSort SortType = iota + 1
+	MergeSort
+	SelectionSort
+	HeapSort
 )
 
-type sortOrder int
+type SortOrder int
+
+type SortType int
+
+func (s SortType) String() string {
+	var out string
+	switch s {
+	case QuickSort:
+		out = "Quick Sort"
+	case MergeSort:
+		out = "Merge Sort"
+	case SelectionSort:
+		out = "Selection Sort"
+	case HeapSort:
+		out = "Heap Sort"
+	}
+
+	return out
+}
 
 type students struct {
 	subjects []string
@@ -48,7 +71,25 @@ func (s *students) PrintDefault(w io.Writer) {
 	table := newTable(w)
 	table.SetHeader(s.headers())
 
-	names := s.sortedStudentNames(sortOrder(2), len(s.subjects))
+	names := s.sortedStudentNames(SortOrder(2), len(s.subjects))
+	for i, name := range names {
+		row := []string{strconv.Itoa(i + 1), name}
+		student := s.s[name]
+		if len(student.grades) > 0 {
+			row = append(row, student.gradesPrint()...)
+			row = append(row, strconv.Itoa(student.totalMarks))
+		}
+		table.Append(row)
+	}
+
+	table.Render()
+}
+
+func (s *students) Print(w io.Writer, o SortOrder, subj int, st SortType) {
+	table := newTable(w)
+	table.SetHeader(s.headers())
+
+	names := s.sortedNamesBySubj(o, subj, st)
 	for i, name := range names {
 		row := []string{strconv.Itoa(i + 1), name}
 		student := s.s[name]
@@ -68,7 +109,23 @@ func (s *students) headers() []string {
 	return h
 }
 
-func (s *students) sortedStudentNames(o sortOrder, subj int) []string {
+func (s *students) sortedNamesBySubj(o SortOrder, subj int, st SortType) []string {
+	var names []string
+	for k := range s.s {
+		names = append(names, k)
+	}
+
+	switch st {
+	case QuickSort:
+		names = s.quicksort(names, o, subj)
+	case MergeSort:
+		names = s.mergesort(names, o, subj)
+	}
+
+	return names
+}
+
+func (s *students) sortedStudentNames(o SortOrder, subj int) []string {
 	var names []string
 	for k := range s.s {
 		names = append(names, k)
@@ -78,7 +135,7 @@ func (s *students) sortedStudentNames(o sortOrder, subj int) []string {
 }
 
 // sorts in descending order
-func (s *students) quicksort(n []string, o sortOrder, subj int) []string {
+func (s *students) quicksort(n []string, o SortOrder, subj int) []string {
 	if len(n) < 2 {
 		return n
 	}
@@ -102,13 +159,13 @@ func (s *students) quicksort(n []string, o sortOrder, subj int) []string {
 }
 
 func (s *students) getPivot(n []string, subj int) int {
-	first := s.s[n[0]]
-	mid := s.s[n[len(n)/2]]
-	last := s.s[n[len(n)-1]]
+	first := s.s[n[0]].getMarkByType(subj)
+	mid := s.s[n[len(n)/2]].getMarkByType(subj)
+	last := s.s[n[len(n)-1]].getMarkByType(subj)
 
-	if first.getMarkByType(subj) > mid.getMarkByType(subj) && first.getMarkByType(subj) < last.getMarkByType(subj) {
+	if first > mid && first < last {
 		return 0
-	} else if mid.totalMarks > last.totalMarks {
+	} else if mid > last {
 		return len(n) - 1
 	}
 
@@ -117,6 +174,43 @@ func (s *students) getPivot(n []string, subj int) int {
 
 func swap(n []string, i int) []string {
 	n[len(n)-1], n[i] = n[i], n[len(n)-1]
+	return n
+}
+
+func (s *students) mergesort(n []string, o SortOrder, subj int) []string {
+	if len(n) < 2 {
+		return n
+	}
+	mid := len(n) / 2
+	return s.merge(s.mergesort(n[:mid], o, subj), s.mergesort(n[mid:], o, subj), o, subj)
+}
+
+func (s *students) merge(lArr, rArr []string, o SortOrder, subj int) []string {
+	sz := len(lArr) + len(rArr)
+	n := make([]string, sz, sz)
+
+	var i, j int
+	for k := 0; k < sz; k++ {
+		if i > len(lArr)-1 && j < len(rArr) {
+			n[k] = rArr[j]
+			j++
+			continue
+		} else if j > len(rArr)-1 && i < len(lArr) {
+			n[k] = lArr[i]
+			i++
+			continue
+		}
+
+		lStud, rStud := s.s[lArr[i]], s.s[rArr[j]]
+		if compare(o, lStud.getMarkByType(subj), rStud.getMarkByType(subj)) {
+			n[k] = lArr[i]
+			i++
+		} else {
+			n[k] = rArr[j]
+			j++
+		}
+	}
+
 	return n
 }
 
@@ -152,8 +246,8 @@ func newTable(w io.Writer) *tablewriter.Table {
 	return table
 }
 
-func compare(o sortOrder, a, b int) bool {
-	if o == asc {
+func compare(o SortOrder, a, b int) bool {
+	if o == ASC {
 		return a < b
 	}
 	return a > b
