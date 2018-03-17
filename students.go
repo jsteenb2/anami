@@ -22,7 +22,7 @@ type students struct {
 func NewStudents(names []string) *students {
 	s := make(map[string]*student)
 	for _, name := range names {
-		s[name] = &student{name: name, grades: make([]string, 0)}
+		s[name] = &student{name: name, grades: make([]int, 0)}
 	}
 
 	return &students{
@@ -38,22 +38,22 @@ func (s *students) AddSubjects(subs []string) {
 func (s *students) AddGrades(grades map[string][]int) {
 	for name, gs := range grades {
 		for _, v := range gs {
-			s.s[name].grades = append(s.s[name].grades, strconv.Itoa(v))
+			s.s[name].grades = append(s.s[name].grades, v)
 			s.s[name].totalMarks += v
 		}
 	}
 }
 
-func (s *students) Print(w io.Writer) {
+func (s *students) PrintDefault(w io.Writer) {
 	table := newTable(w)
 	table.SetHeader(s.headers())
 
-	names := s.sortedStudentNames(sortOrder(2))
+	names := s.sortedStudentNames(sortOrder(2), len(s.subjects))
 	for i, name := range names {
 		row := []string{strconv.Itoa(i + 1), name}
 		student := s.s[name]
 		if len(student.grades) > 0 {
-			row = append(row, student.grades...)
+			row = append(row, student.gradesPrint()...)
 			row = append(row, strconv.Itoa(student.totalMarks))
 		}
 		table.Append(row)
@@ -68,45 +68,45 @@ func (s *students) headers() []string {
 	return h
 }
 
-func (s *students) sortedStudentNames(o sortOrder) []string {
+func (s *students) sortedStudentNames(o sortOrder, subj int) []string {
 	var names []string
 	for k := range s.s {
 		names = append(names, k)
 	}
 
-	return s.quicksort(names, o)
+	return s.quicksort(names, o, subj)
 }
 
 // sorts in descending order
-func (s *students) quicksort(n []string, o sortOrder) []string {
+func (s *students) quicksort(n []string, o sortOrder, subj int) []string {
 	if len(n) < 2 {
 		return n
 	}
 
-	p := s.getPivot(n)
+	p := s.getPivot(n, subj)
 	pivStudent := s.s[n[p]]
 	n = swap(n, p)
 
 	var lastMoved int
 	for i := 0; i < len(n)-1; i++ {
 		curStudent := s.s[n[i]]
-		if compare(o, curStudent.totalMarks, pivStudent.totalMarks) {
+		if compare(o, curStudent.getMarkByType(subj), pivStudent.getMarkByType(subj)) {
 			n[lastMoved], n[i] = n[i], n[lastMoved]
 			lastMoved++
 		}
 	}
 	n = swap(n, lastMoved)
-	out := append(s.quicksort(n[:lastMoved], o), n[lastMoved])
-	out = append(out, s.quicksort(n[lastMoved+1:], o)...)
+	out := append(s.quicksort(n[:lastMoved], o, subj), n[lastMoved])
+	out = append(out, s.quicksort(n[lastMoved+1:], o, subj)...)
 	return out
 }
 
-func (s *students) getPivot(n []string) int {
+func (s *students) getPivot(n []string, subj int) int {
 	first := s.s[n[0]]
 	mid := s.s[n[len(n)/2]]
 	last := s.s[n[len(n)-1]]
 
-	if first.totalMarks > mid.totalMarks && first.totalMarks < last.totalMarks {
+	if first.getMarkByType(subj) > mid.getMarkByType(subj) && first.getMarkByType(subj) < last.getMarkByType(subj) {
 		return 0
 	} else if mid.totalMarks > last.totalMarks {
 		return len(n) - 1
@@ -122,8 +122,23 @@ func swap(n []string, i int) []string {
 
 type student struct {
 	name       string
-	grades     []string
+	grades     []int
 	totalMarks int
+}
+
+func (s *student) getMarkByType(subject int) int {
+	if subject == len(s.grades) {
+		return s.totalMarks
+	}
+	return s.grades[subject]
+}
+
+func (s *student) gradesPrint() []string {
+	o := make([]string, 0, len(s.grades))
+	for _, v := range s.grades {
+		o = append(o, strconv.Itoa(v))
+	}
+	return o
 }
 
 func newTable(w io.Writer) *tablewriter.Table {

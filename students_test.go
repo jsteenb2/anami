@@ -34,7 +34,7 @@ func Test_Students_AddGrades(t *testing.T) {
 			students.AddGrades(tt.grades)
 
 			var b bytes.Buffer
-			students.Print(&b)
+			students.PrintDefault(&b)
 
 			expected := goldenHelper(t, filepath.Join("golden", tt.fileName), b.Bytes())
 			if !bytes.Equal(b.Bytes(), expected) {
@@ -90,7 +90,7 @@ func Test_Students_SortsCorrectly(t *testing.T) {
 			students.AddGrades(tt.grades)
 
 			var b bytes.Buffer
-			students.Print(&b)
+			students.PrintDefault(&b)
 
 			expected := goldenHelper(t, filepath.Join("golden", tt.fileName), b.Bytes())
 			if !bytes.Equal(b.Bytes(), expected) {
