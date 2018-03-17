@@ -7,6 +7,13 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+const (
+	asc sortOrder = iota + 1
+	desc
+)
+
+type sortOrder int
+
 type students struct {
 	subjects []string
 	s        map[string]*student
@@ -41,7 +48,7 @@ func (s *students) Print(w io.Writer) {
 	table := newTable(w)
 	table.SetHeader(s.headers())
 
-	names := s.sortedStudentNames()
+	names := s.sortedStudentNames(sortOrder(2))
 	for i, name := range names {
 		row := []string{strconv.Itoa(i + 1), name}
 		student := s.s[name]
@@ -61,17 +68,17 @@ func (s *students) headers() []string {
 	return h
 }
 
-func (s *students) sortedStudentNames() []string {
+func (s *students) sortedStudentNames(o sortOrder) []string {
 	var names []string
 	for k := range s.s {
 		names = append(names, k)
 	}
 
-	return s.quicksort(names)
+	return s.quicksort(names, o)
 }
 
 // sorts in descending order
-func (s *students) quicksort(n []string) []string {
+func (s *students) quicksort(n []string, o sortOrder) []string {
 	if len(n) < 2 {
 		return n
 	}
@@ -83,14 +90,14 @@ func (s *students) quicksort(n []string) []string {
 	var lastMoved int
 	for i := 0; i < len(n)-1; i++ {
 		curStudent := s.s[n[i]]
-		if curStudent.totalMarks > pivStudent.totalMarks {
+		if compare(o, curStudent.totalMarks, pivStudent.totalMarks) {
 			n[lastMoved], n[i] = n[i], n[lastMoved]
 			lastMoved++
 		}
 	}
 	n = swap(n, lastMoved)
-	out := append(s.quicksort(n[:lastMoved]), n[lastMoved])
-	out = append(out, s.quicksort(n[lastMoved+1:])...)
+	out := append(s.quicksort(n[:lastMoved], o), n[lastMoved])
+	out = append(out, s.quicksort(n[lastMoved+1:], o)...)
 	return out
 }
 
@@ -128,4 +135,11 @@ func newTable(w io.Writer) *tablewriter.Table {
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 
 	return table
+}
+
+func compare(o sortOrder, a, b int) bool {
+	if o == asc {
+		return a < b
+	}
+	return a > b
 }
