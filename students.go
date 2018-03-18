@@ -82,13 +82,13 @@ func NewStudents(names []string) *students {
 	}
 }
 
-func (s *students) RunSort(w io.Writer) error {
+func (s *students) RunSort(w io.Writer) {
 	order := NewSortOrder(mustGetInput("Select Order", []string{"ASC", "DESC"}))
 	subj := mustGetInput("Select Subject", append(s.subjects, "Total Marks"))
 	sortType := NewSortType(mustGetInput("Select Sort Algorithm", []string{QuickSort.String(), MergeSort.String(), SelectionSort.String(), HeapSort.String()}))
 
 	s.Print(w, order, subj, sortType)
-	return nil
+	return
 }
 
 func (s *students) AddSubjects(subs []string) {
