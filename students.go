@@ -36,14 +36,14 @@ type SortType int
 func (s SortType) String() string {
 	var out string
 
-	switch int(s) {
-	case int(QuickSort):
+	switch s {
+	case QuickSort:
 		out = "Quick Sort"
-	case int(MergeSort):
+	case MergeSort:
 		out = "Merge Sort"
-	case int(SelectionSort):
+	case SelectionSort:
 		out = "Selection Sort"
-	case int(HeapSort):
+	case HeapSort:
 		out = "Heap Sort"
 	}
 
