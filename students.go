@@ -201,7 +201,6 @@ func (s *students) sortedStudentNames(o SortOrder, subj int) []string {
 	return s.quicksort(names, o, subj)
 }
 
-// sorts in descending order
 func (s *students) quicksort(n []string, o SortOrder, subj int) []string {
 	if len(n) < 2 {
 		return n
