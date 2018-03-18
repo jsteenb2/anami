@@ -145,7 +145,7 @@ func Test_Students_Print_SortsCorrectly(t *testing.T) {
 		},
 	}
 
-	sorts := []anami.SortType{anami.QuickSort, anami.MergeSort}
+	sorts := []anami.SortType{anami.QuickSort, anami.MergeSort, anami.SelectionSort}
 
 	for _, tt := range tests {
 		for _, sortType := range sorts {

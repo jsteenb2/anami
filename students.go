@@ -120,6 +120,8 @@ func (s *students) sortedNamesBySubj(o SortOrder, subj int, st SortType) []strin
 		names = s.quicksort(names, o, subj)
 	case MergeSort:
 		names = s.mergesort(names, o, subj)
+	case SelectionSort:
+		names = s.selectionsort(names, o, subj)
 	}
 
 	return names
@@ -211,6 +213,25 @@ func (s *students) merge(lArr, rArr []string, o SortOrder, subj int) []string {
 		}
 	}
 
+	return n
+}
+
+func (s *students) selectionsort(n []string, o SortOrder, subj int) []string {
+	for i := 0; i < len(n)-1; i++ {
+		curMark := s.s[n[i]].getMarkByType(subj)
+		low := curMark
+		lowIdx := i
+		for j := i + 1; j < len(n); j++ {
+			nMark := s.s[n[j]].getMarkByType(subj)
+			if compare(o,nMark, curMark) && compare(o, nMark, low) {
+				low = nMark
+				lowIdx = j
+			}
+		}
+		if lowIdx != i {
+			n[i], n[lowIdx] = n[lowIdx], n[i]
+		}
+	}
 	return n
 }
 
