@@ -83,37 +83,9 @@ func NewStudents(names []string) *students {
 }
 
 func (s *students) RunSort(w io.Writer) error {
-	prompt := promptui.Select{
-		Label: "Select Order",
-		Items: []string{
-			"ASC",
-			"DESC",
-		},
-	}
-	i, _, err := prompt.Run()
-	if err != nil {
-		return err
-	}
-	order := NewSortOrder(i)
-
-	prompt = promptui.Select{
-		Label: "Select Subject",
-		Items: append(s.subjects, "Total Marks"),
-	}
-	subj, _, err := prompt.Run()
-	if err != nil {
-		return err
-	}
-
-	prompt = promptui.Select{
-		Label: "Select Sort Algorithm",
-		Items: []string{QuickSort.String(), MergeSort.String(), SelectionSort.String(), HeapSort.String()},
-	}
-	k, _, err := prompt.Run()
-	if err != nil {
-		return err
-	}
-	sortType := NewSortType(k)
+	order := NewSortOrder(mustGetInput("Select Order", []string{"ASC", "DESC"}))
+	subj := mustGetInput("Select Subject", append(s.subjects, "Total Marks"))
+	sortType := NewSortType(mustGetInput("Select Sort Algorithm", []string{QuickSort.String(), MergeSort.String(), SelectionSort.String(), HeapSort.String()}))
 
 	s.Print(w, order, subj, sortType)
 	return nil
@@ -368,4 +340,16 @@ func compare(o SortOrder, a, b int) bool {
 		return a < b
 	}
 	return a > b
+}
+
+func mustGetInput(label string, items []string) int {
+	prompt := promptui.Select{
+		Label: label,
+		Items: items,
+	}
+	i, _, err := prompt.Run()
+	if err != nil {
+		panic(err) // panic here intentional, don't want to continue execution if I have issue with user input
+	}
+	return i
 }
