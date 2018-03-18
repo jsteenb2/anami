@@ -187,6 +187,8 @@ func (s *students) sortedNamesBySubj(o SortOrder, subj int, st SortType) []strin
 		names = s.mergesort(names, o, subj)
 	case SelectionSort:
 		names = s.selectionsort(names, o, subj)
+	case HeapSort:
+		names = s.heapsort(names, o, subj)
 	}
 
 	return names
@@ -288,6 +290,45 @@ func (s *students) selectionsort(n []string, o SortOrder, subj int) []string {
 		}
 	}
 	return n
+}
+
+func (s *students) heapsort(n []string, o SortOrder, subj int) []string {
+	s.newHeap(n, o, subj)
+	for i := len(n) - 1; i > 0; i-- {
+		n[i], n[0] = n[0], n[i]
+		s.heapify(n[:i], 0, o, subj)
+	}
+	return n
+}
+
+func (s *students) newHeap(n []string, o SortOrder, subj int) {
+	for i := len(n) - 1; i >= 0; i-- {
+		s.heapify(n, i, o, subj)
+	}
+}
+
+func (s *students) heapify(n []string, p int, o SortOrder, subj int) {
+	sz := len(n)
+	if sz == 0 {
+		return
+	}
+
+	max, l, r := p, 2*p+1, 2*p+2
+
+	pMark := s.s[n[p]].getMarkByType(subj)
+	if l < sz && compare(o, pMark, s.s[n[l]].getMarkByType(subj)) {
+		max = l
+	}
+
+	maxMark := s.s[n[max]].getMarkByType(subj)
+	if r < sz && compare(o, maxMark, s.s[n[r]].getMarkByType(subj)) {
+		max = r
+	}
+
+	if p != max {
+		n[p], n[max] = n[max], n[p]
+		s.heapify(n, max, o, subj)
+	}
 }
 
 type student struct {
