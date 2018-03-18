@@ -4,6 +4,7 @@ import (
 	"io"
 	"strconv"
 
+	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -11,7 +12,7 @@ const (
 	ASC SortOrder = iota + 1
 	DESC
 
-	QuickSort SortType = iota + 1
+	QuickSort SortType = iota
 	MergeSort
 	SelectionSort
 	HeapSort
@@ -19,22 +20,49 @@ const (
 
 type SortOrder int
 
+func NewSortOrder(i int) SortOrder {
+	switch i {
+	case 0:
+		return ASC
+	case 1:
+		return DESC
+	default:
+		return SortOrder(i)
+	}
+}
+
 type SortType int
 
 func (s SortType) String() string {
 	var out string
-	switch s {
-	case QuickSort:
+
+	switch int(s) {
+	case int(QuickSort):
 		out = "Quick Sort"
-	case MergeSort:
+	case int(MergeSort):
 		out = "Merge Sort"
-	case SelectionSort:
+	case int(SelectionSort):
 		out = "Selection Sort"
-	case HeapSort:
+	case int(HeapSort):
 		out = "Heap Sort"
 	}
 
 	return out
+}
+
+func NewSortType(i int) SortType {
+	switch i {
+	case 0:
+		return QuickSort
+	case 1:
+		return MergeSort
+	case 2:
+		return SelectionSort
+	case 3:
+		return HeapSort
+	default:
+		return SortType(i)
+	}
 }
 
 type students struct {
@@ -52,6 +80,43 @@ func NewStudents(names []string) *students {
 		subjects: make([]string, 0),
 		s:        s,
 	}
+}
+
+func (s *students) RunSort(w io.Writer) error {
+	prompt := promptui.Select{
+		Label: "Select Order",
+		Items: []string{
+			"ASC",
+			"DESC",
+		},
+	}
+	i, _, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+	order := NewSortOrder(i)
+
+	prompt = promptui.Select{
+		Label: "Select Subject",
+		Items: append(s.subjects, "Total Marks"),
+	}
+	subj, _, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+
+	prompt = promptui.Select{
+		Label: "Select Sort Algorithm",
+		Items: []string{QuickSort.String(), MergeSort.String(), SelectionSort.String(), HeapSort.String()},
+	}
+	k, _, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+	sortType := NewSortType(k)
+
+	s.Print(w, order, subj, sortType)
+	return nil
 }
 
 func (s *students) AddSubjects(subs []string) {
@@ -223,7 +288,7 @@ func (s *students) selectionsort(n []string, o SortOrder, subj int) []string {
 		lowIdx := i
 		for j := i + 1; j < len(n); j++ {
 			nMark := s.s[n[j]].getMarkByType(subj)
-			if compare(o,nMark, curMark) && compare(o, nMark, low) {
+			if compare(o, nMark, curMark) && compare(o, nMark, low) {
 				low = nMark
 				lowIdx = j
 			}
