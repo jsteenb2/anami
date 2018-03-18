@@ -136,7 +136,7 @@ func (s *students) PrintDefault(w io.Writer) {
 	table := newTable(w)
 	table.SetHeader(s.headers())
 
-	names := s.sortedStudentNames(SortOrder(2), len(s.subjects))
+	names := s.sortedNamesBySubj(SortOrder(2), len(s.subjects), QuickSort)
 	for i, name := range names {
 		row := []string{strconv.Itoa(i + 1), name}
 		student := s.s[name]
@@ -190,15 +190,6 @@ func (s *students) sortedNamesBySubj(o SortOrder, subj int, st SortType) []strin
 	}
 
 	return names
-}
-
-func (s *students) sortedStudentNames(o SortOrder, subj int) []string {
-	var names []string
-	for k := range s.s {
-		names = append(names, k)
-	}
-
-	return s.quicksort(names, o, subj)
 }
 
 func (s *students) quicksort(n []string, o SortOrder, subj int) []string {
