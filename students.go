@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ASC SortOrder = iota + 1
+	ASC SortOrder = iota
 	DESC
 
 	QuickSort SortType = iota

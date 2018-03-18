@@ -145,7 +145,12 @@ func Test_Students_Print_SortsCorrectly(t *testing.T) {
 		},
 	}
 
-	sorts := []anami.SortType{anami.QuickSort, anami.MergeSort, anami.SelectionSort}
+	sorts := []anami.SortType{
+		anami.QuickSort, 
+		anami.MergeSort, 
+		anami.SelectionSort,
+		anami.HeapSort,
+	}
 
 	for _, tt := range tests {
 		for _, sortType := range sorts {
@@ -164,7 +169,7 @@ func Test_Students_Print_SortsCorrectly(t *testing.T) {
 			}
 			t.Run(tt.name+" "+sortType.String(), fn)
 
-			// only run the quicksort test with update
+			// only run the quicksort test when update flag is set
 			if *update {
 				break
 			}
